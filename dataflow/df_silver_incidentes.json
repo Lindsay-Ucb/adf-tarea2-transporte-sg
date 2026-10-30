@@ -15,8 +15,29 @@
 					"name": "incidentes"
 				}
 			],
-			"sinks": [],
-			"transformations": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "dw_silver_incidentes_sql",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "derivedColumn2"
+				},
+				{
+					"name": "derivedColumn3"
+				},
+				{
+					"name": "filter1"
+				}
+			],
 			"scriptLines": [
 				"source(output(",
 				"          AnioFuente as string,",
@@ -32,7 +53,63 @@
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
-				"     format: 'table') ~> incidentes"
+				"     format: 'table') ~> incidentes",
+				"incidentes derive(IncidenteId = coalesce(trim(IncidenteId), 'SIN_ID'),",
+				"          Descripcion = coalesce(trim(Descripcion), 'SIN_DESCRIPCION')) ~> derivedColumn1",
+				"derivedColumn1 derive(TipoIncidente = iif(isNull(TipoIncidente) || trim(toString(TipoIncidente)) == '', 'SIN_TIPO', upper(trim(toString(TipoIncidente)))),",
+				"          Severidad = iif(isNull(Severidad) || trim(toString(Severidad)) == '', 'SIN_SEVERIDAD', upper(trim(toString(Severidad))))) ~> derivedColumn2",
+				"derivedColumn2 derive(FechaHoraInicio = coalesce(\r",
+				"    iif(instr(FechaHoraInicio, '/') > 0, \r",
+				"        toTimestamp(FechaHoraInicio, 'dd/MM/yyyy HH:mm'), \r",
+				"        iif(instr(FechaHoraInicio, ' ') > 0,\r",
+				"            toTimestamp(FechaHoraInicio, 'yyyy-MM-dd HH:mm'),\r",
+				"            toTimestamp(FechaHoraInicio, 'yyyy-MM-dd')\r",
+				"        )\r",
+				"    ), \r",
+				"    toTimestamp('1900-01-01 00:00:00', 'yyyy-MM-dd HH:mm:ss')\r",
+				"),",
+				"          FechaHoraFin = coalesce(\r",
+				"    iif(instr(FechaHoraFin, '/') > 0, \r",
+				"        toTimestamp(FechaHoraFin, 'dd/MM/yyyy HH:mm'), \r",
+				"        iif(instr(FechaHoraFin, ' ') > 0,\r",
+				"            toTimestamp(FechaHoraFin, 'yyyy-MM-dd HH:mm'),\r",
+				"            toTimestamp(FechaHoraFin, 'yyyy-MM-dd')\r",
+				"        )\r",
+				"    ), \r",
+				"    toTimestamp('1900-01-01 00:00:00', 'yyyy-MM-dd HH:mm:ss')\r",
+				"),",
+				"          FechaHoraRegistro = coalesce(\r",
+				"    iif(instr(FechaHoraRegistro, '/') > 0, \r",
+				"        toTimestamp(FechaHoraRegistro, 'dd/MM/yyyy HH:mm'), \r",
+				"        iif(instr(FechaHoraRegistro, ' ') > 0,\r",
+				"            toTimestamp(FechaHoraRegistro, 'yyyy-MM-dd HH:mm'),\r",
+				"            toTimestamp(FechaHoraRegistro, 'yyyy-MM-dd')\r",
+				"        )\r",
+				"    ), \r",
+				"    toTimestamp('1900-01-01 00:00:00', 'yyyy-MM-dd HH:mm:ss')\r",
+				"),",
+				"          VehiculoId = iif(isNull(VehiculoId) || trim(toString(VehiculoId)) == '', 'SIN_VEHICULO', trim(toString(VehiculoId)))) ~> derivedColumn3",
+				"derivedColumn3 filter(TipoIncidente != 'SIN_TIPO' && year(FechaHoraInicio) > 2000) ~> filter1",
+				"filter1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          IncidenteId as string,",
+				"          TipoIncidente as string,",
+				"          Severidad as string,",
+				"          FechaHoraInicio as timestamp,",
+				"          FechaHoraFin as timestamp,",
+				"          FechaHoraRegistro as timestamp,",
+				"          VehiculoId as string,",
+				"          Descripcion as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> sink1"
 			]
 		}
 	}

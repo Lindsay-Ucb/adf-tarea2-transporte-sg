@@ -1,0 +1,106 @@
+{
+	"name": "df_silver_viajes",
+	"properties": {
+		"folder": {
+			"name": "Silver"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "dw_bronze_viajes_sql",
+						"type": "DatasetReference"
+					},
+					"name": "viajes"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "dw_silver_viajes_sql",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "derivedColumn2"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          AnioFuente as string,",
+				"          ViajeId as string,",
+				"          RutaHistoricaId as string,",
+				"          VehiculoId as string,",
+				"          FechaServicio as string,",
+				"          HoraProgramada as string,",
+				"          HoraSalida as string,",
+				"          HoraLlegada as string,",
+				"          ValidacionesTarjeta as string,",
+				"          KmRecorridos as string,",
+				"          EstadoViaje as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> viajes",
+				"viajes derive(ViajeId = coalesce(trim(ViajeId), 'SIN_ID'),",
+				"          RutaHistoricaId = coalesce(trim(RutaHistoricaId), 'SIN_RUTA'),",
+				"          ValidacionesTarjeta = toInteger(coalesce(trim(ValidacionesTarjeta), '0')),",
+				"          KmRecorridos = toDecimal(replace(coalesce(trim(KmRecorridos), '0'), ',', '.')),",
+				"          EstadoViaje = coalesce(upper(trim(EstadoViaje)), 'DESCONOCIDO')) ~> derivedColumn1",
+				"derivedColumn1 derive(VehiculoId = iif(startsWith(trim(VehiculoId), 'V-'), upper(trim(VehiculoId)), concat('V-', trim(VehiculoId))),",
+				"          FechaServicio = coalesce(\r",
+				"    iif(instr(FechaServicio, '/') > 0, \r",
+				"        toDate(FechaServicio, 'dd/MM/yyyy'), \r",
+				"        toDate(FechaServicio, 'yyyy-MM-dd')\r",
+				"    ), \r",
+				"    toDate('1900-01-01', 'yyyy-MM-dd')\r",
+				"),",
+				"          HoraProgramada = toTimestamp(\r",
+				"  concat(toString(FechaServicio), ' ',\r",
+				"         regexExtract(toString(HoraProgramada), '(\\\\d{2}:\\\\d{2})', 1),\r",
+				"         ':00'),\r",
+				"  'yyyy-MM-dd HH:mm:ss'),",
+				"          HoraSalida = toTimestamp(\r",
+				"  concat(toString(FechaServicio), ' ',\r",
+				"         regexExtract(toString(HoraSalida), '(\\\\d{2}:\\\\d{2})', 1),\r",
+				"         ':00'),\r",
+				"  'yyyy-MM-dd HH:mm:ss'),",
+				"          HoraLlegada = toTimestamp(\r",
+				"  concat(toString(FechaServicio), ' ',\r",
+				"         regexExtract(toString(HoraLlegada), '(\\\\d{2}:\\\\d{2})', 1),\r",
+				"         ':00'),\r",
+				"  'yyyy-MM-dd HH:mm:ss')) ~> derivedColumn2",
+				"derivedColumn2 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          ViajeId as string,",
+				"          RutaHistoricaId as string,",
+				"          VehiculoId as string,",
+				"          FechaServicio as date,",
+				"          HoraProgramada as timestamp,",
+				"          HoraSalida as timestamp,",
+				"          HoraLlegada as timestamp,",
+				"          ValidacionesTarjeta as integer,",
+				"          KmRecorridos as decimal(8,1),",
+				"          EstadoViaje as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> sink1"
+			]
+		}
+	}
+}
