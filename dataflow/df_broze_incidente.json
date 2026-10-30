@@ -16,7 +16,7 @@
 				},
 				{
 					"dataset": {
-						"referenceName": "bronze_incidente_ruta_sql",
+						"referenceName": "bronze_incidentes_sql",
 						"type": "DatasetReference"
 					},
 					"name": "sql"
@@ -46,6 +46,9 @@
 				},
 				{
 					"name": "select4"
+				},
+				{
+					"name": "union1"
 				}
 			],
 			"scriptLines": [
@@ -66,10 +69,10 @@
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false) ~> csv",
 				"source(output(",
-				"          AnioFuente as integer,",
+				"          AnioFuente as string,",
 				"          IncidenteId as string,",
 				"          RutaHistoricaId as string,",
-				"          EsPrincipal as boolean",
+				"          EsPrincipal as string",
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
@@ -111,14 +114,11 @@
 				"          IncidenteId = id_incidente,",
 				"          TipoIncidente = tipo,",
 				"          Severidad = severidad,",
-				"          fecha_inicio,",
-				"          hora_inicio,",
-				"          fecha_fin,",
-				"          hora_fin,",
-				"          fecha_registro,",
-				"          rutas_afectadas,",
-				"          vehiculo_afectado,",
-				"          descripcion",
+				"          FechaHoraInicio = fecha_inicio,",
+				"          FechaHoraFin = fecha_fin,",
+				"          FechaHoraRegistro = fecha_registro,",
+				"          VehiculoId = vehiculo_afectado,",
+				"          Descripcion = descripcion",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select2",
@@ -126,14 +126,11 @@
 				"          IncidenteId = id_incidente,",
 				"          TipoIncidente = tipo,",
 				"          Severidad = severidad,",
-				"          fecha_inicio,",
-				"          hora_inicio,",
-				"          fecha_fin,",
-				"          hora_fin,",
-				"          fecha_registro,",
-				"          rutas_afectadas,",
-				"          vehiculo_afectado,",
-				"          descripcion",
+				"          FechaHoraInicio = fecha_inicio,",
+				"          FechaHoraFin = fecha_fin,",
+				"          FechaHoraRegistro = fecha_registro,",
+				"          VehiculoId = vehiculo_afectado,",
+				"          Descripcion = descripcion",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select3",
@@ -141,17 +138,15 @@
 				"          IncidenteId = id_incidente,",
 				"          TipoIncidente = tipo,",
 				"          Severidad = severidad,",
-				"          fecha_inicio,",
-				"          hora_inicio,",
-				"          fecha_fin,",
-				"          hora_fin,",
+				"          FechaHoraInicio = fecha_inicio,",
+				"          FechaHoraFin = fecha_fin,",
 				"          FechaHoraRegistro = fecha_registro,",
-				"          rutas_afectadas,",
 				"          VehiculoId = vehiculo_afectado,",
 				"          Descripcion = descripcion",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> select4"
+				"     skipDuplicateMapOutputs: true) ~> select4",
+				"select4, sql union(byName: true)~> union1"
 			]
 		}
 	}
