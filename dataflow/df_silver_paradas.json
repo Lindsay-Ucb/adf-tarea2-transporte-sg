@@ -33,9 +33,6 @@
 				},
 				{
 					"name": "derivedColumn3"
-				},
-				{
-					"name": "select1"
 				}
 			],
 			"scriptLines": [
@@ -55,7 +52,7 @@
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> Paradas",
-				"select1 derive(ParadaHistoricaId = trim(ParadaHistoricaId),",
+				"Paradas derive(ParadaHistoricaId = trim(ParadaHistoricaId),",
 				"          NombreParada = trim(NombreParada),",
 				"          Zona = upper(trim(Zona)),",
 				"          Estado = upper(trim(Estado)),",
@@ -78,19 +75,6 @@
 				"    ), \r",
 				"    toDate('1900-01-01', 'yyyy-MM-dd')\r",
 				")) ~> derivedColumn3",
-				"Paradas select(mapColumn(",
-				"          ParadaHistoricaId,",
-				"          CodigoPublicado,",
-				"          NombreParada,",
-				"          Zona,",
-				"          Latitud,",
-				"          Longitud,",
-				"          VigenciaDesde,",
-				"          VigenciaHasta,",
-				"          Estado",
-				"     ),",
-				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> select1",
 				"derivedColumn3 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
