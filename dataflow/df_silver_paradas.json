@@ -33,6 +33,9 @@
 				},
 				{
 					"name": "derivedColumn3"
+				},
+				{
+					"name": "aggregate1"
 				}
 			],
 			"scriptLines": [
@@ -57,7 +60,7 @@
 				"          Zona = upper(trim(Zona)),",
 				"          Estado = upper(trim(Estado)),",
 				"          CodigoPublicado = coalesce(trim(CodigoPublicado), trim(ParadaHistoricaId))) ~> derivedColumn1",
-				"derivedColumn1 derive(Latitud = toDecimal(coalesce(trim(Latitud), '0.0')),",
+				"aggregate1 derive(Latitud = toDecimal(coalesce(trim(Latitud), '0.0')),",
 				"          Longitud = toDecimal(coalesce(trim(Longitud), '0.0'))) ~> derivedColumn2",
 				"derivedColumn2 derive(VigenciaDesde = coalesce(\r",
 				"    iif(\r",
@@ -75,6 +78,15 @@
 				"    ), \r",
 				"    toDate('1900-01-01', 'yyyy-MM-dd')\r",
 				")) ~> derivedColumn3",
+				"derivedColumn1 aggregate(groupBy(ParadaHistoricaId),",
+				"     CodigoPublicado = first(CodigoPublicado),",
+				"          NombreParada = first(NombreParada),",
+				"          Zona = first(Zona),",
+				"          Latitud = first(Latitud),",
+				"          Longitud = first(Longitud),",
+				"          VigenciaDesde = first(VigenciaDesde),",
+				"          VigenciaHasta = first(VigenciaHasta),",
+				"          Estado = first(Estado)) ~> aggregate1",
 				"derivedColumn3 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",

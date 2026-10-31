@@ -30,6 +30,9 @@
 				},
 				{
 					"name": "derivedColumn2"
+				},
+				{
+					"name": "aggregate1"
 				}
 			],
 			"scriptLines": [
@@ -48,13 +51,16 @@
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> rutas",
-				"rutas derive(RutaHistoricaId = coalesce(trim(RutaHistoricaId), 'SIN_RUTA_ID'),",
+				"rutas derive(RutaHistoricaId = concat('RH-', lpad(regexExtract(trim(RutaHistoricaId), '(\\\\d+)', 1), 2, '0'),\r",
+				"  iif(regexMatch(upper(trim(RutaHistoricaId)), '.*-(N|S|NEW)$'),\r",
+				"      concat('-', regexExtract(upper(trim(RutaHistoricaId)), '-(N|S|NEW)$', 1)),\r",
+				"      '')),",
 				"          CodigoRuta = coalesce(trim(CodigoRuta), 'SIN_CODIGO'),",
-				"          NombreRuta = coalesce(trim(NombreRuta), 'SIN_NOMBRE'),",
+				"          NombreRuta = regexReplace(trim(NombreRuta), '^(RH-|R-?|Ruta\\\\s*)\\\\d{1,2}(-(N|S|NEW))?\\\\s+', ''),",
 				"          Origen = coalesce(trim(Origen), 'SIN_ORIGEN'),",
 				"          Destino = coalesce(trim(Destino), 'SIN_DESTINO'),",
 				"          Estado = coalesce(upper(trim(Estado)), 'DESCONOCIDO')) ~> derivedColumn1",
-				"derivedColumn1 derive(VigenciaDesde = coalesce(\r",
+				"aggregate1 derive(VigenciaDesde = coalesce(\r",
 				"    iif(regexMatch(VigenciaDesde, '^[0-9]{5}$'), \r",
 				"        toDate(toString(toTimestamp(VigenciaDesde, 'yyyy-MM-dd')), 'yyyy-MM-dd'), \r",
 				"        iif(instr(VigenciaDesde, '/') > 0, \r",
@@ -74,6 +80,14 @@
 				"    ), \r",
 				"    toDate('1900-01-01', 'yyyy-MM-dd')\r",
 				")) ~> derivedColumn2",
+				"derivedColumn1 aggregate(groupBy(RutaHistoricaId),",
+				"     CodigoRuta = first(CodigoRuta),",
+				"          NombreRuta = first(NombreRuta),",
+				"          Origen = first(Origen),",
+				"          VigenciaDesde = first(VigenciaDesde),",
+				"          VigenciaHasta = first(VigenciaHasta),",
+				"          Destino = first(Destino),",
+				"          Estado = first(Estado)) ~> aggregate1",
 				"derivedColumn2 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",

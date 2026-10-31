@@ -7,7 +7,13 @@
 				"type": "ExecuteDataFlow",
 				"dependsOn": [
 					{
-						"activity": "Script1",
+						"activity": "Paradas",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Rutas",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -34,7 +40,7 @@
 				}
 			},
 			{
-				"name": "Script1",
+				"name": "sc_reset_tablas_silver",
 				"type": "Script",
 				"dependsOn": [],
 				"policy": {
@@ -64,7 +70,7 @@
 				"type": "ExecuteDataFlow",
 				"dependsOn": [
 					{
-						"activity": "Demanda Paradas",
+						"activity": "Vehiculos",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -95,7 +101,7 @@
 				"type": "ExecuteDataFlow",
 				"dependsOn": [
 					{
-						"activity": "Incidentes",
+						"activity": "sc_reset_tablas_silver",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -126,7 +132,7 @@
 				"type": "ExecuteDataFlow",
 				"dependsOn": [
 					{
-						"activity": "Paradas",
+						"activity": "sc_reset_tablas_silver",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -157,7 +163,7 @@
 				"type": "ExecuteDataFlow",
 				"dependsOn": [
 					{
-						"activity": "Rutas",
+						"activity": "sc_reset_tablas_silver",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -187,6 +193,12 @@
 				"name": "Viajes",
 				"type": "ExecuteDataFlow",
 				"dependsOn": [
+					{
+						"activity": "Rutas",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
 					{
 						"activity": "Vehiculos",
 						"dependencyConditions": [

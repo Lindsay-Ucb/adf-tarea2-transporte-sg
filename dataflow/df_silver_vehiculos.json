@@ -30,6 +30,9 @@
 				},
 				{
 					"name": "derivedColumn2"
+				},
+				{
+					"name": "aggregate1"
 				}
 			],
 			"scriptLines": [
@@ -51,7 +54,7 @@
 				"          Placa = upper(trim(Placa)),",
 				"          TipoVehiculo = upper(trim(TipoVehiculo)),",
 				"          Estado = upper(trim(Estado))) ~> derivedColumn1",
-				"derivedColumn1 derive(CapacidadEfectiva = toInteger(coalesce(trim(CapacidadEfectiva), '0')),",
+				"aggregate1 derive(CapacidadEfectiva = toInteger(coalesce(trim(CapacidadEfectiva), '0')),",
 				"          VigenciaDesde = coalesce(\r",
 				"    iif(\r",
 				"        instr(VigenciaDesde, '/') > 0, \r",
@@ -68,6 +71,13 @@
 				"    ), \r",
 				"    toDate('1900-01-01', 'yyyy-MM-dd')\r",
 				")) ~> derivedColumn2",
+				"derivedColumn1 aggregate(groupBy(VehiculoId),",
+				"     Placa = first(Placa),",
+				"          TipoVehiculo = first(TipoVehiculo),",
+				"          CapacidadEfectiva = first(CapacidadEfectiva),",
+				"          VigenciaDesde = first(VigenciaDesde),",
+				"          VigenciaHasta = first(VigenciaHasta),",
+				"          Estado = first(Estado)) ~> aggregate1",
 				"derivedColumn2 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
