@@ -89,7 +89,7 @@
 				"    ), \r",
 				"    toTimestamp('1900-01-01 00:00:00', 'yyyy-MM-dd HH:mm:ss')\r",
 				"),",
-				"          VehiculoId = iif(isNull(VehiculoId) || trim(toString(VehiculoId)) == '', 'SIN_VEHICULO', trim(toString(VehiculoId)))) ~> derivedColumn3",
+				"          VehiculoId = iif(isNull(VehiculoId) || trim(VehiculoId) == '', toString(null()), trim(VehiculoId))) ~> derivedColumn3",
 				"derivedColumn3 filter(TipoIncidente != 'SIN_TIPO' && year(FechaHoraInicio) > 2000) ~> filter1",
 				"filter1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
